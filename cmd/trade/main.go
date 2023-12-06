@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	"v2/internal/infra/kafka"
-	"v2/internal/market/dto"
-	"v2/internal/market/entity"
-	"v2/internal/market/transformer"
 
+	"github.com/SnipperBH/FullCycle/internal/infra/kafka"
+	"github.com/SnipperBH/FullCycle/internal/market/dto"
+	"github.com/SnipperBH/FullCycle/internal/market/entity"
+	"github.com/SnipperBH/FullCycle/internal/market/transformer"
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
@@ -20,24 +20,18 @@ func main() {
 
 	kafkaMsgChan := make(chan *ckafka.Message)
 	configMap := &ckafka.ConfigMap{
-		"bootstrap.servers":        "host.docker.internal:9094",
-		"group.id":                 "myGroup",
-		"auto.offset.reset":        "latest",
-		"session.timeout.ms":       6000,
-		"go.events.channel.enable": true,
-		"enable.auto.commit":       true,
-		"auto.commit.interval.ms":  1000,
+		"bootstrap.servers": "host.docker.internal:9094",
+		"group.id":          "myGroup",
+		"auto.offset.reset": "latest",
 	}
-
 	producer := kafka.NewKafkaProducer(configMap)
 	kafka := kafka.NewConsumer(configMap, []string{"input"})
 
-	go kafka.Consume(kafkaMsgChan) //o Go cria uma nova Thread
+	go kafka.Consume(kafkaMsgChan) // T2
 
-	//Recebe do canal do kafka, joga no input, processa e joga no output
-	//Depois publica no kafka
+	// recebe do canal do kafka, joga no input, processa joga no output e depois publica no kafka
 	book := entity.NewBook(ordersIn, ordersOut, wg)
-	go book.Trade() //o Go cria uma nova Thread
+	go book.Trade() // T3
 
 	go func() {
 		for msg := range kafkaMsgChan {

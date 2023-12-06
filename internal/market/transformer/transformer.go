@@ -1,8 +1,8 @@
 package transformer
 
 import (
-	"v2/internal/market/dto"
-	"v2/internal/market/entity"
+	"github.com/SnipperBH/FullCycle/internal/market/dto"
+	"github.com/SnipperBH/FullCycle/internal/market/entity"
 )
 
 func TransformInput(input dto.TradeInput) *entity.Order {
@@ -10,8 +10,8 @@ func TransformInput(input dto.TradeInput) *entity.Order {
 	investor := entity.NewInvestor(input.InvestorID)
 	order := entity.NewOrder(input.OrderID, investor, asset, input.Shares, input.Price, input.OrderType)
 	if input.CurrentShares > 0 {
-		assetPostion := entity.NewInvestorAssetPosition(input.AssetID, input.CurrentShares)
-		investor.AddAssetPosition(assetPostion)
+		assetPosition := entity.NewInvestorAssetPosition(input.AssetID, input.CurrentShares)
+		investor.AddAssetPosition(assetPosition)
 	}
 	return order
 }
@@ -23,7 +23,7 @@ func TransformOutput(order *entity.Order) *dto.OrderOutput {
 		AssetID:    order.Asset.ID,
 		OrderType:  order.OrderType,
 		Status:     order.Status,
-		Partial:    order.PedingShares,
+		Partial:    order.PendingShares,
 		Shares:     order.Shares,
 	}
 
@@ -31,14 +31,14 @@ func TransformOutput(order *entity.Order) *dto.OrderOutput {
 	for _, t := range order.Transactions {
 		transactionOutput := &dto.TransactionOutput{
 			TransactionID: t.ID,
-			BuyerID:       t.BuyingOrder.ID,
-			SellerID:      t.SellingOrder.ID,
+			BuyerID:       t.BuyingOrder.Investor.ID,
+			SellerID:      t.SellingOrder.Investor.ID,
 			AssetID:       t.SellingOrder.Asset.ID,
 			Price:         t.Price,
-			Shares:        t.SellingOrder.Shares - t.SellingOrder.PedingShares,
+			Shares:        t.SellingOrder.Shares - t.SellingOrder.PendingShares,
 		}
 		transactionsOutput = append(transactionsOutput, transactionOutput)
 	}
-	output.TransactionOutput = transactionsOutput
+	output.TransactionsOutput = transactionsOutput
 	return output
 }

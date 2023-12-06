@@ -16,12 +16,12 @@ type Transaction struct {
 	DateTime     time.Time
 }
 
-func NewTransaction(sellingOver *Order, buyOrder *Order, shares int, price float64) *Transaction {
+func NewTransaction(sellingOrder *Order, buyingOrder *Order, shares int, price float64) *Transaction {
 	total := float64(shares) * price
 	return &Transaction{
 		ID:           uuid.New().String(),
-		SellingOrder: sellingOver,
-		BuyingOrder:  buyOrder,
+		SellingOrder: sellingOrder,
+		BuyingOrder:  buyingOrder,
 		Shares:       shares,
 		Price:        price,
 		Total:        total,
@@ -34,21 +34,21 @@ func (t *Transaction) CalculateTotal(shares int, price float64) {
 }
 
 func (t *Transaction) CloseBuyOrder() {
-	if t.BuyingOrder.PedingShares == 0 {
+	if t.BuyingOrder.PendingShares == 0 {
 		t.BuyingOrder.Status = "CLOSED"
 	}
 }
 
 func (t *Transaction) CloseSellOrder() {
-	if t.SellingOrder.PedingShares == 0 {
+	if t.SellingOrder.PendingShares == 0 {
 		t.SellingOrder.Status = "CLOSED"
 	}
 }
 
 func (t *Transaction) AddBuyOrderPendingShares(shares int) {
-	t.BuyingOrder.PedingShares += shares
+	t.BuyingOrder.PendingShares += shares
 }
 
 func (t *Transaction) AddSellOrderPendingShares(shares int) {
-	t.SellingOrder.PedingShares += shares
+	t.SellingOrder.PendingShares += shares
 }
